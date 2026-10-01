@@ -635,18 +635,18 @@ tw-passage tw-link:focus-visible,.passage a.link-internal:focus-visible{
 
 /* ---- GoatCounter analytics: overall pageview + per-case entry/win/fail events ---- */
 (function(){
-  var gc = document.createElement('script');
-  gc.async = true;
-  gc.src = 'https://ec-analytics.ziyadwahabi09.workers.dev/count.js';
-  gc.setAttribute('data-goatcounter', 'https://ec-analytics.ziyadwahabi09.workers.dev/count');
-  document.head.appendChild(gc);
+  var GC_COUNT = 'https://ec-analytics.ziyadwahabi09.workers.dev/count';
 
   function fire(path, isEvent){
-    if (window.goatcounter && window.goatcounter.count){
-      window.goatcounter.count({path: path, title: path, event: !!isEvent});
-    } else {
-      setTimeout(function(){ fire(path, isEvent); }, 200);
-    }
+    try{
+      var params = 'p=' + encodeURIComponent(path) +
+                   '&t=' + encodeURIComponent(path) +
+                   (isEvent ? '&e=true' : '') +
+                   '&rnd=' + Math.random().toString(36).slice(2);
+      var img = new Image(1,1);
+      img.referrerPolicy = 'no-referrer-when-downgrade';
+      img.src = GC_COUNT + '?' + params;
+    } catch(e) {}
   }
 
   function caseNameOf(passageName){
@@ -676,11 +676,17 @@ tw-passage tw-link:focus-visible,.passage a.link-internal:focus-visible{
     });
     mo2.observe(storyEl, {childList:true, subtree:true});
   }
-  document.addEventListener('DOMContentLoaded', function(){
+
+  function fireHome(){
     fire('/', false);
     var passageEl = document.querySelector('tw-passage,.passage');
     if (passageEl) detectAndFire(passageEl);
-  });
+  }
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', fireHome);
+  } else {
+    fireHome();
+  }
 
   document.addEventListener('click', function(e){
     var a = e.target.closest && e.target.closest('.ec-hub-item a, .ec-hub-item tw-link');
